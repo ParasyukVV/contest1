@@ -1,35 +1,79 @@
 #include <iostream>
 
+template<typename Type> Type max(Type a, Type b) {
+	return (a >= b ? a : b);
+}
+
+template<typename Type> Type min(Type a, Type b) {
+	return (a <= b ? a : b);
+}
+
 // Сделать норм рандом
 
 struct TreapNode {
-    int value; // Во избежание путаницы с неявным ключом использую это наименование
     int priority;
     TreapNode *leftChild;
     TreapNode *rightChild;
+
     int size;
-    TreapNode() {
-		size = 1;
-		leftChild = nullptr;
-        rightChild = nullptr;
-		priority = rand(); // !Тут надо сделать нормальный рандом!
-	}	
+    int value;
+    int sum;
+    int minimum;
+    int maximum;
+    
     TreapNode(int valueInput) {
         size = 1;
-        value = valueInput;
 		leftChild = nullptr;
         rightChild = nullptr;
 		priority = rand(); // !Тут надо сделать нормальный рандом!
+
+        value = valueInput;
+        sum = valueInput;
+        minimum = valueInput;
+        maximum = valueInput;
     }
 };
 
 int GetSize(TreapNode *root) { // Число элементов в декартовом дереве за O(1)
-    if(root == nullptr) return 0;
+    if(root == nullptr) 
+        return 0;
     return root -> size;
 }
 
+int GetSum(TreapNode *root) {
+    if(root == nullptr)
+        return 0;
+    return root -> sum;
+}
+
+int GetMinimum(TreapNode *root) { // Случай с root = nullptr возвращает 0, поэтому в update использовать нормально нельзя
+    if(root == nullptr)
+        return 0;
+    return root -> minimum;
+}
+
+int GetMaximum(TreapNode *root) { // Случай с root = nullptr возвращает 0, поэтому в update использовать нормально нельзя
+    if(root == nullptr)
+        return 0;
+    return root -> maximum;
+}
+
 void Update(TreapNode *root) {
+    if(root == nullptr)
+        return;
     root->size = GetSize(root->leftChild) + 1 + GetSize(root->rightChild);
+    root->sum = GetSum(root->leftChild) + root->value + GetSum(root->rightChild);
+    // Хорошо бы придумать GetMinimum и GetMaximum, которые будут корректно работать с nullptr
+    root->minimum = root->value;
+    root->maximum = root->value;
+    if(root->leftChild != nullptr) {
+        root->minimum = min(root->leftChild->value, root->minimum);
+        root->maximum = max(root->leftChild->value, root->maximum);
+    }
+    if(root->rightChild != nullptr) {
+        root->minimum = min(root->value, root->rightChild->minimum);
+        root->maximum = max(root->value, root->rightChild->maximum);
+    }
 }
 
 std::pair<TreapNode *, TreapNode *> SplitByImplicitKey(TreapNode *root, int key) {// Split по НЕявному ключу за O(log N); в первое уходят вершины c индексами [0, ..., key]
@@ -81,10 +125,12 @@ TreapNode * Erase (TreapNode *root, int position) { // Удаление верш
         return Merge(root->leftChild, root->rightChild); // Если введённый неявный ключ равен неявному ключу корня, то мерджим потомков корня
     if(position < leftSize) {
         root->leftChild = Erase(root->leftChild, position); // Если введённый неявный ключ меньше неявного ключа в корне, то удаляем из левого поддерева по тому же ключу
+        Update(root);
         return root;
     } 
     if(position > leftSize) {
         root->rightChild = Erase(root->rightChild, position - leftSize - 1); // Если введённый неявный ключ больше неявного ключа в корне, то удаляем из правого поддерева по тому же ключу
+        Update(root);
         return root;
     }
 }
@@ -99,17 +145,42 @@ int GetValue(TreapNode *root, int position) { // Значение по неяв�
         return GetValue(root->leftChild, position);
     } 
     if(position > leftSize) {
-        return GetValue(root->rightChild, position - leftSize - 1); ;
+        return GetValue(root->rightChild, position - leftSize - 1); 
     }
 }
 
+int Sum(TreapNode *root, int leftIndex, int rightIndex) {
+    std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
+    std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
+    int answer = GetSum(rightBuffer.first);
+    root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
+    return answer;
+}
+
+int Minimum(TreapNode *root, int leftIndex, int rightIndex) {
+    std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
+    std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
+    int answer = GetMinimum(rightBuffer.first);
+    root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
+    return answer;
+}
+
+int Maximum(TreapNode *root, int leftIndex, int rightIndex) {
+    std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
+    std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
+    int answer = GetMaximum(rightBuffer.first);
+    root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
+    return answer;
+}
 
 
 int main() {
     TreapNode* root = nullptr;
     root = Insert(root, 0, new TreapNode(7));
     root = Insert(root, 1, new TreapNode(8));
-    root = Erase(root, 0);
-    std::cout << GetValue(root, 0) << "\n";
+    root = Insert(root, 2, new TreapNode(5));
+    root = Insert(root, 3, new TreapNode(6));
+    //root = Erase(root, 0);
+    std::cout << Maximum(root, 0, 3) << "\n";
     return 0;
 }

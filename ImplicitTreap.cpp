@@ -9,6 +9,7 @@ template<typename Type> Type min(Type a, Type b) {
 }
 
 // Сделать норм рандом
+// Не уверен в корректности использования Push, в частности в Erase
 
 struct TreapNode {
     int priority;
@@ -20,6 +21,8 @@ struct TreapNode {
     int sum;
     int minimum;
     int maximum;
+    int addition;
+    
     
     TreapNode(int valueInput) {
         size = 1;
@@ -31,6 +34,7 @@ struct TreapNode {
         sum = valueInput;
         minimum = valueInput;
         maximum = valueInput;
+        addition = 0;
     }
 };
 
@@ -58,6 +62,23 @@ int GetMaximum(TreapNode *root) { // Случай с root = nullptr возвра
     return root -> maximum;
 }
 
+void IncreaseAddition(TreapNode *root, int inputValue){
+    if(root == nullptr) 
+        return;
+    root->addition += inputValue;
+}
+
+void Push(TreapNode *root) {
+    if (root == nullptr) 
+        return;
+    root->value += root->addition;
+    if (root->leftChild != nullptr) 
+        root->leftChild->addition += root->addition;
+    if (root->rightChild != nullptr) 
+        root->rightChild->addition += root->addition;
+    root->addition = 0;
+}
+
 void Update(TreapNode *root) {
     if(root == nullptr)
         return;
@@ -77,6 +98,7 @@ void Update(TreapNode *root) {
 }
 
 std::pair<TreapNode *, TreapNode *> SplitByImplicitKey(TreapNode *root, int key) {// Split по НЕявному ключу за O(log N); в первое уходят вершины c индексами [0, ..., key]
+    Push(root);
     if(root == nullptr) 
         return {nullptr, nullptr};
     int leftSize = GetSize(root->leftChild); // Размер левого поддерева, то есть неявный ключ root
@@ -95,6 +117,8 @@ std::pair<TreapNode *, TreapNode *> SplitByImplicitKey(TreapNode *root, int key)
 }
 
 TreapNode * Merge(TreapNode *left, TreapNode *right) { // Объединение двух деревьев за O(log N). Тут мы верим что все ключи в left меньше всех ключей в right
+    Push(left);
+    Push(right);
     if(left == nullptr)
         return right;
     if(right == nullptr) 
@@ -120,6 +144,7 @@ TreapNode * Insert (TreapNode *root, int position, TreapNode *input) { // Доб
 TreapNode * Erase (TreapNode *root, int position) { // Удаление вершины по её индексу за O(log N)
     if(root == nullptr)
         return nullptr;
+    Push(root);
     int leftSize = GetSize(root->leftChild); // Размер левого поддерева, то есть ключ root
     if(position == leftSize)
         return Merge(root->leftChild, root->rightChild); // Если введённый неявный ключ равен неявному ключу корня, то мерджим потомков корня
@@ -173,6 +198,13 @@ int Maximum(TreapNode *root, int leftIndex, int rightIndex) {
     return answer;
 }
 
+void Addition(TreapNode *root, int leftIndex, int rightIndex, int inputValue) {
+    std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
+    std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
+    IncreaseAddition(rightBuffer.first, inputValue);
+    root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
+}
+
 
 int main() {
     TreapNode* root = nullptr;
@@ -180,7 +212,8 @@ int main() {
     root = Insert(root, 1, new TreapNode(8));
     root = Insert(root, 2, new TreapNode(5));
     root = Insert(root, 3, new TreapNode(6));
-    //root = Erase(root, 0);
-    std::cout << Maximum(root, 0, 3) << "\n";
+    root = Erase(root, 0);
+    Addition(root, 2, 5, 1);
+    std::cout << Sum(root, 0, 3) << "\n";
     return 0;
 }

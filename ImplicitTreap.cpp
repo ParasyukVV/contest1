@@ -22,6 +22,7 @@ struct TreapNode {
     int minimum;
     int maximum;
     int addition;
+    bool reversed; 
     
     
     TreapNode(int valueInput) {
@@ -35,6 +36,7 @@ struct TreapNode {
         minimum = valueInput;
         maximum = valueInput;
         addition = 0;
+        reversed = false;
     }
 };
 
@@ -62,10 +64,16 @@ int GetMaximum(TreapNode *root) { // Случай с root = nullptr возвра
     return root -> maximum;
 }
 
-void IncreaseAddition(TreapNode *root, int inputValue){
+void IncreaseAddition(TreapNode *root, int inputValue){ // Увеличивает на заданное число поле addition только в вершине(не в её потомках)
     if(root == nullptr) 
         return;
     root->addition += inputValue;
+}
+
+void ChangeReverse(TreapNode *root) {
+    if(root == nullptr) 
+        return;
+    root->reversed ^= true; // x xor true = !x
 }
 
 void Push(TreapNode *root) {
@@ -77,6 +85,13 @@ void Push(TreapNode *root) {
     if (root->rightChild != nullptr) 
         root->rightChild->addition += root->addition;
     root->addition = 0;
+
+    if(root->reversed == true) {
+        ChangeReverse(root);
+        std::swap(root->leftChild, root->rightChild);
+        ChangeReverse(root->leftChild);
+        ChangeReverse(root->rightChild);
+    }
 }
 
 void Update(TreapNode *root) {
@@ -174,7 +189,7 @@ int GetValue(TreapNode *root, int position) { // Значение по неяв�
     }
 }
 
-int Sum(TreapNode *root, int leftIndex, int rightIndex) {
+int Sum(TreapNode *root, int leftIndex, int rightIndex) { // leftIndex и rightIndex "поджимаются" до 0 и size-1, если они меньше 0 или больше size-1 соответственно
     std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
     std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
     int answer = GetSum(rightBuffer.first);
@@ -182,7 +197,7 @@ int Sum(TreapNode *root, int leftIndex, int rightIndex) {
     return answer;
 }
 
-int Minimum(TreapNode *root, int leftIndex, int rightIndex) {
+int Minimum(TreapNode *root, int leftIndex, int rightIndex) { // leftIndex и rightIndex "поджимаются" до 0 и size-1, если они меньше 0 или больше size-1 соответственно
     std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
     std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
     int answer = GetMinimum(rightBuffer.first);
@@ -190,7 +205,7 @@ int Minimum(TreapNode *root, int leftIndex, int rightIndex) {
     return answer;
 }
 
-int Maximum(TreapNode *root, int leftIndex, int rightIndex) {
+int Maximum(TreapNode *root, int leftIndex, int rightIndex) { // leftIndex и rightIndex "поджимаются" до 0 и size-1, если они меньше 0 или больше size-1 соответственно
     std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
     std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
     int answer = GetMaximum(rightBuffer.first);
@@ -198,13 +213,19 @@ int Maximum(TreapNode *root, int leftIndex, int rightIndex) {
     return answer;
 }
 
-void Addition(TreapNode *root, int leftIndex, int rightIndex, int inputValue) {
+void Addition(TreapNode *root, int leftIndex, int rightIndex, int inputValue) { // leftIndex и rightIndex "поджимаются" до 0 и size-1, если они меньше 0 или больше size-1 соответственно
     std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
     std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
     IncreaseAddition(rightBuffer.first, inputValue);
     root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
 }
 
+void Reverse(TreapNode *root, int leftIndex, int rightIndex) { // leftIndex и rightIndex "поджимаются" до 0 и size-1, если они меньше 0 или больше size-1 соответственно
+    std::pair<TreapNode *, TreapNode *> leftBuffer = SplitByImplicitKey(root, leftIndex - 1); // В first храним левый обрубок дерева
+    std::pair<TreapNode *, TreapNode *> rightBuffer = SplitByImplicitKey(leftBuffer.second, rightIndex - leftIndex); // В second храним правый обрубок дерева
+    ChangeReverse(rightBuffer.first);
+    root = Merge(Merge(leftBuffer.first, rightBuffer.first), rightBuffer.second);
+}
 
 int main() {
     TreapNode* root = nullptr;
@@ -214,6 +235,8 @@ int main() {
     root = Insert(root, 3, new TreapNode(6));
     root = Erase(root, 0);
     Addition(root, 2, 5, 1);
-    std::cout << Sum(root, 0, 3) << "\n";
+    Reverse(root, -1, 7);
+
+    std::cout << Sum(root, 0, 0) << "\n";
     return 0;
 }

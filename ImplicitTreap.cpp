@@ -2,6 +2,7 @@
 
 // Reverse работает через жопу
 // Addition работает через жопу
+// Insert работает через жопу
 // Есть недоработки в реализации TreapNode
 
 class Treap {
@@ -182,6 +183,7 @@ private:
     }
 
     int GetValue(TreapNode *root, int position) { // Значение по неявному ключу за O(log N) по аналогии с Erase
+        Push(root);
         if(root == nullptr)
             return 0;
         int leftSize = GetSize(root->leftChild); 
@@ -240,13 +242,12 @@ public:
         Root = nullptr;
     }
 
-    void insert(int value, int position) {
-        TreapNode *inputNode = new TreapNode(value);
-        Root = Insert(Root, position, inputNode);
+    void Insert(int position, int value) {
+        Root = Insert(Root, position, new TreapNode(value));
     }
 
     void PushBack(int value) {
-        insert(value, GetSize(Root));
+        Insert(value, GetSize(Root));
     }
 
     void Erase(int position) {
@@ -301,9 +302,10 @@ int main() {
         myTreap.PushBack(i);
     }
     myTreap.PrintAsArray();
-    //myTreap.Addition(0, 7, 1);
-    //myTreap.PrintAsArray();
-    myTreap.Erase(4);
-    std::cout << myTreap.Minimum(2, 5) << '\n';
+    //myTreap.Addition(4, 9, 1);
+    //myTreap.Erase(3);
+    myTreap.Insert(4, 8);
+    myTreap.PrintAsArray();
+    std::cout << myTreap.Sum(0, 7) << '\n';
     return 0;
 }

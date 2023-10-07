@@ -109,12 +109,12 @@ private:
         root->minimum = root->value;
         root->maximum = root->value;
         if(root->leftChild != nullptr) {
-            root->minimum = min(root->leftChild->value, root->minimum);
-            root->maximum = max(root->leftChild->value, root->maximum);
+            root->minimum = min(root->leftChild->minimum, root->minimum);
+            root->maximum = max(root->leftChild->maximum, root->maximum);
         }
         if(root->rightChild != nullptr) {
-            root->minimum = min(root->value, root->rightChild->minimum);
-            root->maximum = max(root->value, root->rightChild->maximum);
+            root->minimum = min(root->minimum, root->rightChild->minimum);
+            root->maximum = max(root->maximum, root->rightChild->maximum);
         }
     }
 
@@ -290,6 +290,10 @@ public:
     }
 };
 
+template<typename Type> Type min(Type a, Type b) {
+    return (a <= b ? a : b);
+}
+
 int main() {
     Treap myTreap;
     std::cout << myTreap.Size() << '\n';
@@ -297,9 +301,9 @@ int main() {
         myTreap.PushBack(i);
     }
     myTreap.PrintAsArray();
-    myTreap.Addition(3, 6, 1); 
-    myTreap.PrintAsArray();
-    myTreap.Addition(0, 7, -2); 
-    myTreap.PrintAsArray();
+    //myTreap.Addition(0, 7, 1);
+    //myTreap.PrintAsArray();
+    myTreap.Erase(4);
+    std::cout << myTreap.Minimum(2, 5) << '\n';
     return 0;
 }

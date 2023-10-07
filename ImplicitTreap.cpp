@@ -1,8 +1,5 @@
 #include <iostream>
 
-// Reverse работает через жопу
-// Addition работает через жопу
-// Insert работает через жопу
 // Есть недоработки в реализации TreapNode
 
 class Treap {
@@ -291,10 +288,6 @@ public:
     }
 };
 
-template<typename Type> Type min(Type a, Type b) {
-    return (a <= b ? a : b);
-}
-
 int main() {
     Treap myTreap;
     std::cout << myTreap.Size() << '\n';
@@ -302,10 +295,14 @@ int main() {
         myTreap.PushBack(i);
     }
     myTreap.PrintAsArray();
-    //myTreap.Addition(4, 9, 1);
+    myTreap.Addition(4, 9, 1);
     //myTreap.Erase(3);
     myTreap.Insert(4, 8);
     myTreap.PrintAsArray();
-    std::cout << myTreap.Sum(0, 7) << '\n';
+    myTreap.Reverse(3, 5);
+    myTreap.PrintAsArray();
+    myTreap.Reverse(1, 6);
+    myTreap.PrintAsArray();
+    std::cout << myTreap.Sum(0, 8) << '\n';
     return 0;
 }

@@ -2,54 +2,57 @@
 #include <vector>
 #include <fstream>
 
-template<typename Type>
-class fenwick_tree {
-private:
-  std::vector<Type> tree;
+template <typename Type>
+class FenwickTree {
+ private:
+  std::vector<Type> tree_;
+  int size_;
 
-  int sum(int right) {
+  int Sum(int right) {
     Type answer = 0;
     for (; right >= 0; right = (right & (right + 1)) - 1) {
-      answer += tree[right];
+      answer += tree_[right];
     }
     return answer;
   }
 
-public:
-  void increase_by_value(int position, Type value) {
-    for (; position < tree.size(); position |= position + 1) {
-      tree[position] += value;
+ public:
+  void IncreaseByValue(int position, Type value) {
+    for (; position < size_; position |= position + 1) {
+      tree_[position] += value;
     }
   }
 
-  void change_value(int position, Type value) {
-    increase_by_value(position, value - sum(position, position));
+  void ChangeValue(int position, Type value) {
+    IncreaseByValue(position, value - Sum(position, position));
   }
 
-  fenwick_tree(const std::vector<Type> &array) {
+  explicit FenwickTree(const std::vector<Type> &array) {
+    size_ = static_cast<int>(array.size());
     std::vector<Type> prefix_sum;
     prefix_sum.push_back(0);
-    for(int i = 1; i < array.size(); ++i) {
+    for (int i = 1; i < size_; ++i) {
       prefix_sum.push_back(array[i] + prefix_sum[i - 1]);
     }
-    for(int i = 0; i < prefix_sum.size(); ++i) {
-      tree.push_back(prefix_sum[i] - prefix_sum[(i & (i + 1)) - 1]);
+    for (int i = 0; i < size_; ++i) {
+      tree_.push_back(prefix_sum[i] - prefix_sum[(i & (i + 1)) - 1]);
     }
   }
 
-  fenwick_tree(const std::vector<int> &array) {
+  explicit FenwickTree(const std::vector<int> &array) {
+    size_ = static_cast<int>(array.size());
     std::vector<Type> prefix_sum;
     prefix_sum.push_back(0);
-    for(int i = 1; i < array.size(); ++i) {
+    for (int i = 1; i < size_; ++i) {
       prefix_sum.push_back(array[i] + prefix_sum[i - 1]);
     }
-    for(int i = 0; i < prefix_sum.size(); ++i) {
-      tree.push_back(prefix_sum[i] - prefix_sum[(i & (i + 1)) - 1]);
+    for (int i = 0; i < size_; ++i) {
+      tree_.push_back(prefix_sum[i] - prefix_sum[(i & (i + 1)) - 1]);
     }
   }
 
-  int sum(int left, int right) {
-    return sum(right) - sum(left - 1);
+  int Sum(int left, int right) {
+    return Sum(right) - Sum(left - 1);
   }
 };
 

@@ -73,6 +73,13 @@ Node_ *Insert(Node_ *root, int key_input) {
   return Merge(buffer.first, Merge(inserting_node, buffer.second));
 }
 
+Node_ *Erase(Node_ *root, int key_input) {
+  std::pair<Node_ *, Node_ *> left_buffer = Split(root, key_input); // tree_left, other_tree
+  std::pair<Node_ *, Node_ *> right_buffer = Split(left_buffer.second, key_input + 1); // rubbish, tree_right
+  delete right_buffer.first;
+  return Merge(left_buffer.first, right_buffer.second);
+}
+
 Node_ *Build(const std::vector <int> &input_array) {
   Node_ *answer = nullptr;
   for (int i = 0; i < input_array.size(); ++i) {
@@ -100,7 +107,7 @@ void BuildArray(Node_ *root, int num, std::vector<std::pair<int, int> > &array) 
 int Depth(Node_ *root) {
   if(root == nullptr) 
     return 0;
-  return 1 + std::min(Depth(root->left_child), Depth(root->right_child));
+  return 1 + std::max(Depth(root->left_child), Depth(root->right_child));
 }
 
 int Exponentation (int basis, int indicator) {
@@ -126,11 +133,19 @@ void PrintTree(Node_ *root) {
 int main() {
   int n;
   std::cin >> n;
-  std::vector<int> array;
+  std::vector<int> array1;
   for (int i = 0, input = 0; i < n; ++i) {
     std::cin >> input;
-    array.push_back(input);
+    array1.push_back(input);
   }
-  Node_ *treap = Build(array);
-  PrintTree(treap);
+  Node_ *treap1 = Build(array1);
+  /*std::cin >> n;
+  std::vector<int> array2;
+  for (int i = 0, input = 0; i < n; ++i) {
+    std::cin >> input;
+    array2.push_back(input);
+  }
+  Node_ *treap2 = Build(array2); */
+  treap1 = Erase(treap1, 5);
+  PrintTree(treap1);
 }

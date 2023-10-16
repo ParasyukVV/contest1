@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 struct Node_ {
   Node_ *left_child;
@@ -72,6 +73,64 @@ Node_ *Insert(Node_ *root, int key_input) {
   return Merge(buffer.first, Merge(inserting_node, buffer.second));
 }
 
+Node_ *Build(const std::vector <int> &input_array) {
+  Node_ *answer = nullptr;
+  for (int i = 0; i < input_array.size(); ++i) {
+    answer = Insert(answer, input_array[i]);
+  }
+  return answer;
+}
+
+// Тут кусок для вывода дерева
+std::pair <int, int> data(Node_ *root) {
+  if (root == nullptr) {
+    return {0, 0};
+  }
+  return {root->key, root->priority};
+}
+
+void BuildArray(Node_ *root, int num, std::vector<std::pair<int, int> > &array) {
+  if(root == nullptr) 
+    return;
+  array[num] = data(root);
+  BuildArray(root->left_child, 2 * num + 1, array);
+  BuildArray(root->right_child, 2 * num + 2, array);
+}
+
+int Depth(Node_ *root) {
+  if(root == nullptr) 
+    return 0;
+  return 1 + std::min(Depth(root->left_child), Depth(root->right_child));
+}
+
+int Exponentation (int basis, int indicator) {
+  if (indicator == 0) 
+    return 1;
+  if(indicator % 2 == 0) 
+    return Exponentation(basis, indicator / 2) * Exponentation(basis, indicator / 2); // Да, это очень плохо
+  else 
+    return basis * Exponentation(basis, indicator - 1);
+}
+
+void PrintTree(Node_ *root) {
+  std::vector<std::pair<int, int> > answer;
+  answer.resize(Exponentation(2, Depth(root)) - 1, {0, 0});
+  BuildArray(root, 0, answer);
+  for(int i = 0; i < answer.size(); ++i) {
+    std::cout << '(' << answer[i].first << ", " << answer[i].second << ") ";
+  }
+  std::cout << '\n';
+}
+// Кусок про вывод дерева закончился
+
 int main() {
-  std::cout << "bidlo\n";
+  int n;
+  std::cin >> n;
+  std::vector<int> array;
+  for (int i = 0, input = 0; i < n; ++i) {
+    std::cin >> input;
+    array.push_back(input);
+  }
+  Node_ *treap = Build(array);
+  PrintTree(treap);
 }

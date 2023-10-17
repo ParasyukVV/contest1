@@ -25,6 +25,13 @@ int GetSize(Node_* root) {
   return root->size;
 }
 
+bool CompareKey(Node_* root, int input_key) {
+  if(root == nullptr) {
+    return false;
+  } 
+  return root->key == input_key;
+}
+
 void Update(Node_ *root) {
   if(root == nullptr) {
     return;
@@ -68,8 +75,11 @@ std::pair<Node_ *, Node_ *> Split(Node_ *root, int key_for_split) {
 }
 
 Node_ *Insert(Node_ *root, int key_input) {
-  Node_ *inserting_node = new Node_(key_input); 
+  Node_ *inserting_node = nullptr; 
   std::pair<Node_ *, Node_ *> buffer = Split(root, key_input); // tree_1, tree_2
+  if(CompareKey(root, key_input) == false) {
+    inserting_node = new Node_(key_input); 
+  }
   return Merge(buffer.first, Merge(inserting_node, buffer.second));
 }
 
@@ -85,6 +95,68 @@ Node_ *Build(const std::vector <int> &input_array) {
   for (int i = 0; i < input_array.size(); ++i) {
     answer = Insert(answer, input_array[i]);
   }
+  return answer;
+}
+
+bool Exists(Node_ *root, int key_input) {
+  if(root == nullptr) {
+    return false;
+  }
+  if(root->key == key_input) {
+    return true;
+  } else if(key_input < root->key) {
+    return Exists(root -> left_child, key_input);
+  } else {
+    return Exists(root -> right_child, key_input);
+  }
+}
+
+std::pair<bool, int> OrderStatistics(Node_ *root, int number) { // 0 - индексация
+  if(root == nullptr) {
+    return std::pair<bool, int> (false, 0);
+  }
+  int left_size = GetSize(root->left_child);
+  if(left_size == number) {
+    return std::pair<bool, int> (true, root->key);
+  } else if(left_size < number) { 
+    return OrderStatistics(root->right_child, number - left_size - 1);
+  } else {
+    return OrderStatistics(root->left_child, number);
+  }
+
+}
+
+std::pair<bool, int> Maximum(Node_ *root) {
+  if(root == nullptr) {
+    return std::pair<bool, int> (false, 0);
+  }
+  if(root -> right_child == nullptr) {
+    return std::pair<bool, int> (true, root->key);
+  } 
+  return Maximum(root->right_child);
+}
+
+std::pair<bool, int> Minimum(Node_ *root) {
+  if(root == nullptr) {
+    return std::pair<bool, int> (false, 0);
+  }
+  if(root -> left_child == nullptr) {
+    return std::pair<bool, int> (true, root->key);
+  } 
+  return Minimum(root->left_child);
+}
+
+std::pair<bool, int> Previous(Node_ *root, int key_input) {
+  std::pair<Node_ *, Node_ *> buffer = Split(root, key_input);
+  std::pair<bool, int> answer = Maximum(buffer.first);
+  Merge(buffer.first, buffer.second);
+  return answer;
+}
+
+std::pair<bool, int> Next(Node_ *root, int key_input) {
+  std::pair<Node_ *, Node_ *> buffer = Split(root, key_input + 1);
+  std::pair<bool, int> answer = Minimum(buffer.second);
+  Merge(buffer.first, buffer.second);
   return answer;
 }
 
@@ -139,13 +211,11 @@ int main() {
     array1.push_back(input);
   }
   Node_ *treap1 = Build(array1);
-  /*std::cin >> n;
-  std::vector<int> array2;
-  for (int i = 0, input = 0; i < n; ++i) {
-    std::cin >> input;
-    array2.push_back(input);
+  //PrintTree(treap1);
+  std::pair<bool, int> prev = Next(treap1, 3);
+  if(prev.first == true) {
+    std::cout << prev.second << '\n';
+  } else {
+    std::cout << "none\n";
   }
-  Node_ *treap2 = Build(array2); */
-  treap1 = Erase(treap1, 5);
-  PrintTree(treap1);
 }

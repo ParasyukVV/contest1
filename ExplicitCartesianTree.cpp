@@ -3,200 +3,197 @@
 
 template <typename TreeType>
 class ExplicitCartesianTree {
-private:
+ private:
   template <typename NodeType>
-  struct Node_ {
-    Node_ *left_child;
-    Node_ *right_child;
+  struct Node {
+    Node *left_child;
+    Node *right_child;
 
     NodeType key;
     int priority;
     int size;
 
-    Node_(NodeType key_input) {
+    explicit Node(NodeType key_input) {
       size = 1;
       key = key_input;
       left_child = nullptr;
       right_child = nullptr;
-      priority = (rand() << 32) | rand();
+      priority = rand();
     }
   };
 
-  Node_<TreeType> *tree_;
+  Node<TreeType> *tree_;
 
-  int GetSize_(Node_<TreeType> *root) {
-    if(root == nullptr) {
+  int GetSize(Node<TreeType> *root) {
+    if (root == nullptr) {
       return 0;
-    } 
+    }
     return root->size;
   }
 
-  bool CompareKey_(Node_ <TreeType> *root, TreeType input_key) {
-    if(root == nullptr) {
+  bool CompareKey(Node<TreeType> *root, TreeType input_key) {
+    if (root == nullptr) {
       return false;
-    } 
+    }
     return root->key == input_key;
   }
 
-  void Update_(Node_<TreeType> *root) {
-    if(root == nullptr) {
+  void Update(Node<TreeType> *root) {
+    if (root == nullptr) {
       return;
     }
-    root->size = GetSize_(root->left_child) + 1 + GetSize_(root->right_child);
+    root->size = GetSize(root->left_child) + 1 + GetSize(root->right_child);
   }
 
-  Node_<TreeType> *Merge_(Node_<TreeType> *tree_1, Node_<TreeType> *tree_2) {
-    if(tree_1 == nullptr) {
+  Node<TreeType> *Merge(Node<TreeType> *tree_1, Node<TreeType> *tree_2) {
+    if (tree_1 == nullptr) {
       return tree_2;
     }
-    if(tree_2 == nullptr) {
+    if (tree_2 == nullptr) {
       return tree_1;
     }
-    if(tree_1->priority < tree_2->priority) {
-      tree_1->right_child = Merge_(tree_1->right_child, tree_2);
-      Update_(tree_1);
+    if (tree_1->priority < tree_2->priority) {
+      tree_1->right_child = Merge(tree_1->right_child, tree_2);
+      Update(tree_1);
       return tree_1;
-    } else {
-      tree_2->left_child = Merge_(tree_1, tree_2->left_child);
-      Update_(tree_2);
-      return tree_2;
     }
+    tree_2->left_child = Merge(tree_1, tree_2->left_child);
+    Update(tree_2);
+    return tree_2;
   }
 
-  std::pair<Node_<TreeType> *, Node_<TreeType> *> Split_(Node_<TreeType> *root, TreeType key_for_split) {
-    if(root == nullptr) {
+  std::pair<Node<TreeType> *, Node<TreeType> *> Split(Node<TreeType> *root, TreeType key_for_split) {
+    if (root == nullptr) {
       return {nullptr, nullptr};
     }
-    if(root->key < key_for_split) {
-      std::pair<Node_<TreeType> *, Node_<TreeType> *> buffer = Split_(root->right_child, key_for_split); // tree_1, tree_2
+    if (root->key < key_for_split) {
+      std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root->right_child, key_for_split);
       root->right_child = buffer.first;
-      Update_(root);
-      return std::pair<Node_<TreeType> *, Node_<TreeType> *> (root, buffer.second);
-    } else {
-      std::pair<Node_<TreeType> *, Node_<TreeType> *> buffer = Split_(root->left_child, key_for_split); // tree_1, tree_2
-      root->left_child = buffer.second;
-      Update_(root);
-      return std::pair<Node_<TreeType> *, Node_<TreeType> *> (buffer.first, root);
+      Update(root);
+      return std::pair<Node<TreeType> *, Node<TreeType> *>(root, buffer.second);
     }
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root->left_child, key_for_split);
+    root->left_child = buffer.second;
+    Update(root);
+    return std::pair<Node<TreeType> *, Node<TreeType> *>(buffer.first, root);
   }
 
-  Node_<TreeType> *Insert_(Node_<TreeType> *root, TreeType key_input) {
-    Node_<TreeType> *inserting_node = nullptr; 
-    std::pair<Node_<TreeType> *, Node_<TreeType> *> buffer = Split_(root, key_input); // tree_1, tree_2
-    if(CompareKey_(root, key_input) == false) {
-      inserting_node = new Node_<TreeType>(key_input); 
+  Node<TreeType> *Insert(Node<TreeType> *root, TreeType key_input) {
+    Node<TreeType> *inserting_node = nullptr;
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input);
+    if (!CompareKey(root, key_input)) {
+      inserting_node = new Node<TreeType>(key_input);
     }
-    return Merge_(buffer.first, Merge_(inserting_node, buffer.second));
+    return Merge(buffer.first, Merge(inserting_node, buffer.second));
   }
 
-  Node_<TreeType> *Erase_(Node_<TreeType> *root, TreeType key_input) {
-    std::pair<Node_<TreeType> *, Node_<TreeType> *> left_buffer = Split_(root, key_input); // tree_left, other_tree
-    std::pair<Node_<TreeType> *, Node_<TreeType> *> right_buffer = Split_(left_buffer.second, key_input + 1); // rubbish, tree_right
+  Node<TreeType> *Erase(Node<TreeType> *root, TreeType key_input) {
+    std::pair<Node<TreeType> *, Node<TreeType> *> left_buffer = Split(root, key_input);
+    std::pair<Node<TreeType> *, Node<TreeType> *> right_buffer = Split(left_buffer.second, key_input + 1);
     delete right_buffer.first;
-    return Merge_(left_buffer.first, right_buffer.second);
+    return Merge(left_buffer.first, right_buffer.second);
   }
 
-  Node_<TreeType> *Build_(const std::vector <TreeType> &input_array) {
-    Node_<TreeType> *answer = nullptr;
+  Node<TreeType> *Build(const std::vector<TreeType> &input_array) {
+    Node<TreeType> *answer = nullptr;
     for (int i = 0; i < input_array.size(); ++i) {
-      answer = Insert_(answer, input_array[i]);
+      answer = Insert(answer, input_array[i]);
     }
     return answer;
   }
 
-  bool Exists_(Node_<TreeType> *root, TreeType key_input) {
-    if(root == nullptr) {
+  bool Exists(Node<TreeType> *root, TreeType key_input) {
+    if (root == nullptr) {
       return false;
     }
-    if(root->key == key_input) {
+    if (root->key == key_input) {
       return true;
-    } else if(key_input < root->key) {
-      return Exists_(root -> left_child, key_input);
-    } else {
-      return Exists_(root -> right_child, key_input);
     }
+    if (key_input < root->key) {
+      return Exists(root->left_child, key_input);
+    }
+    return Exists(root->right_child, key_input);
   }
 
-  std::pair<bool, int> OrderStatistics_(Node_<TreeType> *root, int number) { // 0 - индексация
-    if(root == nullptr) {
-      return std::pair<bool, int> (false, 0);
+  std::pair<bool, int> OrderStatistics(Node<TreeType> *root, int number) {  // 0 - индексация
+    if (root == nullptr) {
+      return {false, 0};
     }
-    int left_size = GetSize_(root->left_child);
-    if(left_size == number) {
-      return std::pair<bool, int> (true, root->key);
-    } else if(left_size < number) { 
-      return OrderStatistics_(root->right_child, number - left_size - 1);
-    } else {
-      return OrderStatistics_(root->left_child, number);
+    int left_size = GetSize(root->left_child);
+    if (left_size == number) {
+      return {true, root->key};
     }
-
+    if (left_size < number) {
+      return OrderStatistics(root->right_child, number - left_size - 1);
+    }
+    return OrderStatistics(root->left_child, number);
   }
 
-  std::pair<bool, int> Maximum_(Node_<TreeType> *root) {
-    if(root == nullptr) {
-      return std::pair<bool, int> (false, 0);
+  std::pair<bool, int> Maximum(Node<TreeType> *root) {
+    if (root == nullptr) {
+      return {false, 0};
     }
-    if(root -> right_child == nullptr) {
-      return std::pair<bool, int> (true, root->key);
-    } 
-    return Maximum_(root->right_child);
+    if (root->right_child == nullptr) {
+      return {true, root->key};
+    }
+    return Maximum(root->right_child);
   }
 
-  std::pair<bool, int> Minimum_(Node_<TreeType> *root) {
-    if(root == nullptr) {
-      return std::pair<bool, int> (false, 0);
+  std::pair<bool, int> Minimum(Node<TreeType> *root) {
+    if (root == nullptr) {
+      return {false, 0};
     }
-    if(root -> left_child == nullptr) {
-      return std::pair<bool, int> (true, root->key);
-    } 
-    return Minimum_(root->left_child);
+    if (root->left_child == nullptr) {
+      return {true, root->key};
+    }
+    return Minimum(root->left_child);
   }
 
-  std::pair<bool, int> Previous_(Node_<TreeType> *root, TreeType key_input) {
-    std::pair<Node_<TreeType> *, Node_<TreeType> *> buffer = Split_(root, key_input);
-    std::pair<bool, int> answer = Maximum_(buffer.first);
-    Merge_(buffer.first, buffer.second);
+  std::pair<bool, int> Previous(Node<TreeType> *root, TreeType key_input) {
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input);
+    std::pair<bool, int> answer = Maximum(buffer.first);
+    Merge(buffer.first, buffer.second);
     return answer;
   }
 
-  std::pair<bool, int> Next_(Node_<TreeType> *root, TreeType key_input) {
-    std::pair<Node_<TreeType> *, Node_<TreeType> *> buffer = Split_(root, key_input + 1);
-    std::pair<bool, int> answer = Minimum_(buffer.second);
-    Merge_(buffer.first, buffer.second);
+  std::pair<bool, int> Next(Node<TreeType> *root, TreeType key_input) {
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input + 1);
+    std::pair<bool, int> answer = Minimum(buffer.second);
+    Merge(buffer.first, buffer.second);
     return answer;
   }
 
-public:
+ public:
   explicit ExplicitCartesianTree() {
     tree_ = nullptr;
   }
 
-  explicit ExplicitCartesianTree(const std::vector <TreeType> &array) {
-    tree_ = Build_(array);
+  explicit ExplicitCartesianTree(const std::vector<TreeType> &array) {
+    tree_ = Build(array);
   }
 
   void Insert(TreeType key_input) {
-    tree_ = Insert_(tree_, key_input);
+    tree_ = Insert(tree_, key_input);
   }
 
   void Erase(TreeType key_input) {
-    tree_ = Erase_(tree_, key_input);
+    tree_ = Erase(tree_, key_input);
   }
 
   bool Exists(TreeType key_input) {
-    return Exists_(tree_, key_input);
+    return Exists(tree_, key_input);
   }
 
   std::pair<bool, int> Previous(TreeType key_input) {
-    return Previous_(tree_, key_input);
+    return Previous(tree_, key_input);
   }
 
   std::pair<bool, int> Next(TreeType key_input) {
-    return Next_(tree_, key_input);
+    return Next(tree_, key_input);
   }
 
   std::pair<bool, int> OrderStatistics(int number) {
-    return OrderStatistics_(tree_, number);
+    return OrderStatistics(tree_, number);
   }
 };
 

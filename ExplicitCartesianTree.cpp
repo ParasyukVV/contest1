@@ -10,12 +10,14 @@ class ExplicitCartesianTree {
     Node *right_child;
 
     NodeType key;
+    NodeType sum;
     int priority;
     int size;
 
     explicit Node(NodeType key_input) {
       size = 1;
       key = key_input;
+      sum = key_input;
       left_child = nullptr;
       right_child = nullptr;
       priority = rand();
@@ -31,6 +33,13 @@ class ExplicitCartesianTree {
     return root->size;
   }
 
+  TreeType GetSum(Node<TreeType> *root) {
+    if (root == nullptr) {
+      return 0;
+    }
+    return root->sum;
+  }
+
   bool CompareKey(Node<TreeType> *root, TreeType input_key) {
     if (root == nullptr) {
       return false;
@@ -43,6 +52,7 @@ class ExplicitCartesianTree {
       return;
     }
     root->size = GetSize(root->left_child) + 1 + GetSize(root->right_child);
+    root->sum = GetSum(root->left_child) + root->key + GetSum(root->right_child);
   }
 
   Node<TreeType> *Merge(Node<TreeType> *tree_1, Node<TreeType> *tree_2) {
@@ -115,7 +125,7 @@ class ExplicitCartesianTree {
     return Exists(root->right_child, key_input);
   }
 
-  std::pair<bool, int> OrderStatistics(Node<TreeType> *root, int number) {  // 0 - индексация
+  std::pair<bool, TreeType> OrderStatistics(Node<TreeType> *root, int number) {  // 0 - индексация
     if (root == nullptr) {
       return {false, 0};
     }
@@ -129,7 +139,7 @@ class ExplicitCartesianTree {
     return OrderStatistics(root->left_child, number);
   }
 
-  std::pair<bool, int> Maximum(Node<TreeType> *root) {
+  std::pair<bool, TreeType> Maximum(Node<TreeType> *root) {
     if (root == nullptr) {
       return {false, 0};
     }
@@ -139,7 +149,7 @@ class ExplicitCartesianTree {
     return Maximum(root->right_child);
   }
 
-  std::pair<bool, int> Minimum(Node<TreeType> *root) {
+  std::pair<bool, TreeType> Minimum(Node<TreeType> *root) {
     if (root == nullptr) {
       return {false, 0};
     }
@@ -149,17 +159,25 @@ class ExplicitCartesianTree {
     return Minimum(root->left_child);
   }
 
-  std::pair<bool, int> Previous(Node<TreeType> *root, TreeType key_input) {
+  std::pair<bool, TreeType> Previous(Node<TreeType> *root, TreeType key_input) {
     std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input);
-    std::pair<bool, int> answer = Maximum(buffer.first);
-    Merge(buffer.first, buffer.second);
+    std::pair<bool, TreeType> answer = Maximum(buffer.first);
+    root = Merge(buffer.first, buffer.second);
     return answer;
   }
 
-  std::pair<bool, int> Next(Node<TreeType> *root, TreeType key_input) {
+  std::pair<bool, TreeType> Next(Node<TreeType> *root, TreeType key_input) {
     std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input + 1);
-    std::pair<bool, int> answer = Minimum(buffer.second);
-    Merge(buffer.first, buffer.second);
+    std::pair<bool, TreeType> answer = Minimum(buffer.second);
+    root = Merge(buffer.first, buffer.second);
+    return answer;
+  }
+
+  TreeType Sum(Node<TreeType> *root, TreeType left_value, TreeType right_value) {
+    std::pair<Node<TreeType> *, Node<TreeType> *> left_buffer = Split(root, left_value);
+    std::pair<Node<TreeType> *, Node<TreeType> *> right_buffer = Split(left_buffer.second, right_value + 1);
+    TreeType answer = GetSum(right_buffer.first);
+    root = Merge(left_buffer.first, Merge(right_buffer.first, right_buffer.second));
     return answer;
   }
 
@@ -184,19 +202,25 @@ class ExplicitCartesianTree {
     return Exists(tree_, key_input);
   }
 
-  std::pair<bool, int> Previous(TreeType key_input) {
+  std::pair<bool, TreeType> Previous(TreeType key_input) {
     return Previous(tree_, key_input);
   }
 
-  std::pair<bool, int> Next(TreeType key_input) {
+  std::pair<bool, TreeType> Next(TreeType key_input) {
     return Next(tree_, key_input);
   }
 
-  std::pair<bool, int> OrderStatistics(int number) {
+  std::pair<bool, TreeType> OrderStatistics(int number) {
     return OrderStatistics(tree_, number);
+  }
+
+  TreeType Sum(TreeType left_value, TreeType right_value) {
+    return Sum(tree_, left_value, right_value);
   }
 };
 
 int main() {
-  
+  ExplicitCartesianTree<int> treap;
+  treap.Insert(9);
+  std::cout << treap.Sum(2, 8) << '\n';
 }

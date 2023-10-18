@@ -88,13 +88,25 @@ class ExplicitCartesianTree {
     return std::pair<Node<TreeType> *, Node<TreeType> *>(buffer.first, root);
   }
 
-  Node<TreeType> *Insert(Node<TreeType> *root, TreeType key_input) {
-    Node<TreeType> *inserting_node = nullptr;
-    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input);
-    if (!CompareKey(root, key_input)) {
-      inserting_node = new Node<TreeType>(key_input);
+  bool Exists(Node<TreeType> *root, TreeType key_input) {
+    if (root == nullptr) {
+      return false;
     }
-    return Merge(buffer.first, Merge(inserting_node, buffer.second));
+    if (root->key == key_input) {
+      return true;
+    }
+    if (key_input < root->key) {
+      return Exists(root->left_child, key_input);
+    }
+    return Exists(root->right_child, key_input);
+  }
+
+  Node<TreeType> *Insert(Node<TreeType> *root, TreeType key_input) {
+    if (Exists(root, key_input)) {
+      return root;
+    }
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, key_input);
+    return Merge(buffer.first, Merge(new Node<TreeType>(key_input), buffer.second));
   }
 
   Node<TreeType> *Erase(Node<TreeType> *root, TreeType key_input) {
@@ -110,19 +122,6 @@ class ExplicitCartesianTree {
       answer = Insert(answer, input_array[i]);
     }
     return answer;
-  }
-
-  bool Exists(Node<TreeType> *root, TreeType key_input) {
-    if (root == nullptr) {
-      return false;
-    }
-    if (root->key == key_input) {
-      return true;
-    }
-    if (key_input < root->key) {
-      return Exists(root->left_child, key_input);
-    }
-    return Exists(root->right_child, key_input);
   }
 
   std::pair<bool, TreeType> OrderStatistics(Node<TreeType> *root, int number) {  // 0 - индексация
@@ -220,7 +219,7 @@ class ExplicitCartesianTree {
 };
 
 int main() {
-  ExplicitCartesianTree<int> treap;
+  /*ExplicitCartesianTree<int64_t> treap;
   treap.Insert(9);
-  std::cout << treap.Sum(2, 8) << '\n';
+  std::cout << treap.Sum(2, 8) << '\n';*/
 }

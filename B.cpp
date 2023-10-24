@@ -18,7 +18,7 @@ int main() {
   int answer_right = 0;
   for (int i = 1, input_value = 0; i <= n; ++i) {
     cin >> input_value;
-    if (input_value < 0 && input_value > max_negative_value) {
+    if (input_value > max_negative_value) {
       max_negative_value = input_value;
       max_negative_position = i;
     }
@@ -26,13 +26,13 @@ int main() {
     if (current_sum < 0) {
       negative_prefix = i;  // Префикс до i точно не входит в искомый отрезок
       current_sum = 0;
-    } else {
+    } else if (current_sum > answer_sum) {
       answer_left = negative_prefix + 1;
       answer_right = i;
       answer_sum = current_sum;
     }
   }
-  if (answer_left == 0) {
+  if (answer_left == 0) {  // Случай всех отрицательных значений
     answer_left = max_negative_position;
     answer_right = max_negative_position;
     answer_sum = max_negative_value;

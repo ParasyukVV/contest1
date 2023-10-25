@@ -9,7 +9,6 @@ class ImplicitCartesianTree {
   struct Node {
     Node *left_child;
     Node *right_child;
-    Node *parent;
 
     NodeType value;
     int priority;
@@ -20,8 +19,11 @@ class ImplicitCartesianTree {
       value = input_value;
       left_child = nullptr;
       right_child = nullptr;
-      parent = nullptr;
       priority = rand();
+    }
+    ~Node() {
+      delete this->left_child;
+      delete this->right_child;
     }
   };
 
@@ -34,20 +36,11 @@ class ImplicitCartesianTree {
     return root->size;
   }
 
-  void SetParent(Node<TreeType> *child, Node<TreeType> *parent) {
-    if(child == nullptr) {
-      return;
-    }
-    child->parent = parent;
-  }
-
   void Update(Node<TreeType> *root) {
     if (root == nullptr) {
       return;
     }
     root->size = GetSize(root->left_child) + 1 + GetSize(root->right_child);
-    SetParent(root->left_child, root);
-    SetParent(root->right_child, root);
   }
 
   Node<TreeType> *Merge(Node<TreeType> *tree_1, Node<TreeType> *tree_2) {
@@ -89,50 +82,17 @@ class ImplicitCartesianTree {
     root = Merge(right_buffer.first, Merge(left_buffer.first, right_buffer.second));
   }
 
-  Node<TreeType> *LowerPriorityAncestor(Node<TreeType> *current_node, int priority_input) {
-    if (current_node == nullptr) {
-      return nullptr;
-    }
-    if (current_node->priority < priority_input) {
-      return current_node;
-    }
-    return LowerPriorityAncestor(current_node->parent, priority_input);
+  Node<TreeType> *Insert(Node<TreeType> *root, int position, TreeType input_value) {
+    std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(root, position);
+    return Merge(buffer.first, Merge(new Node<TreeType>(input_value), buffer.second));
   }
 
-  void TreeUpdate(Node<TreeType> *current_node) {
-    if(current_node == nullptr) {
-      return;
+  Node<TreeType> *Build(const std::vector<TreeType> &input_array) {
+    Node<TreeType> *answer = nullptr;
+    int size = static_cast<int>(input_array.size());
+    for (int i = 0; i < size; ++i) {
+      answer = Insert(answer, i, input_array[i]);
     }
-    TreeUpdate(current_node->left_child);
-    TreeUpdate(current_node->right_child);
-    Update(current_node);
-  }
-
-  Node<TreeType> *SortedBuild(const std::vector<TreeType> &array) {
-    if (array.empty()) {
-      return nullptr;
-    }
-    Node<TreeType> *answer = new Node(array[0]);
-    Node<TreeType> *node_with_max_key = answer;
-    int size = static_cast<int>(array.size());
-    for (int i = 1; i < size; ++i) {
-      Node<TreeType> *new_node = new Node(array[i]);
-      Node<TreeType> *parent_for_new_node = LowerPriorityAncestor(node_with_max_key, new_node->priority);
-      if (parent_for_new_node == nullptr) {
-        answer->parent = new_node;
-        new_node->left_child = answer;
-        answer = new_node;
-      } else {
-        new_node->parent = parent_for_new_node;
-        new_node->left_child = parent_for_new_node->right_child;
-        if (new_node->left_child != nullptr) {
-          new_node->left_child->parent = new_node;
-        }
-        parent_for_new_node->right_child = new_node;
-      }
-      node_with_max_key = new_node;
-    }
-    TreeUpdate(answer);
     return answer;
   }
 
@@ -142,31 +102,38 @@ class ImplicitCartesianTree {
   }
 
   explicit ImplicitCartesianTree(const std::vector<TreeType> &array) {
-    tree_ = SortedBuild(array);
+    tree_ = Build(array);
   }
 
   void Operation(int left_position, int right_position) {
     return Operation(tree_, left_position, right_position);
   }
 
-  void DestroyPrint() {
-    while(tree_) {
+  void DestroyPrint() {  // Можно было бы и за линию
+    while (tree_) {
       std::pair<Node<TreeType> *, Node<TreeType> *> buffer = Split(tree_, 1);
       std::cout << buffer.first->value << ' ';
       tree_ = buffer.second;
+      delete buffer.first;
     }
     std::cout << '\n';
   }
 };
 
 int main() {
-  int n;
-  std::cin >> n;
+  int n = 0;
+  int m = 0;
+  std::cin >> n >> m;
   std::vector<int> array;
-  for(int i = 1; i <= n; ++i) {
+  for (int i = 1; i <= n; ++i) {
     array.push_back(i);
   }
-  ImplicitCartesianTree treap(array);
-  treap.Operation(1, 2);
+  ImplicitCartesianTree<int> treap(array);
+  for (int i = 0, left = 0, right = 0; i < m; ++i) {
+    std::cin >> left >> right;
+    --left;
+    --right;
+    treap.Operation(left, right);
+  }
   treap.DestroyPrint();
 }

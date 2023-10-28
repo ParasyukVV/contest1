@@ -61,11 +61,12 @@ class SegmentTree {
                  RightChild(position));
   }
 
+
  public:
   explicit SegmentTree(const std::string &input_string) {
     int real_size = static_cast<int>(input_string.size());  // Размер копируемого массива
     size_ = UpperDegTwo(real_size);                         // Теперь считаем размер 2^k
-    tree_.resize(2 * size_ - 1, Node(0, 0, 0));
+    tree_.resize2 * size_ - 1, Node(0, 0, 0));
     for (int i = size_ - 1; i < real_size + size_ - 1; ++i) {
       if (input_string[i - size_ + 1] == '(') {
         tree_[i].open_brackets = 1;

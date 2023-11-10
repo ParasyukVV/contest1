@@ -1,15 +1,13 @@
 #include <iostream>
 #include <vector>
 
-#define kMod 4294967296
-
 void ValueModificatorAdd(unsigned int left, unsigned int right, unsigned int add,
-                         std::vector<int64_t> &value_modificator) {
-  value_modificator[left] += static_cast<int64_t>(add);
-  value_modificator[right + 1] -= static_cast<int64_t>(add);
+                         std::vector<unsigned int> &value_modificator) {
+  value_modificator[left] += static_cast<unsigned int>(add);
+  value_modificator[right + 1] -= static_cast<unsigned int>(add);
 }
 
-void BuildPrefixSum(std::vector<int64_t> &value_modificator, std::vector<int64_t> &prefix_sum) {
+void BuildPrefixSum(std::vector<unsigned int> &value_modificator, std::vector<unsigned int> &prefix_sum) {
   int size = static_cast<int>(value_modificator.size()) - 1;
   int64_t current_value = 0;
   for (int i = 1; i < size; ++i) {
@@ -18,7 +16,7 @@ void BuildPrefixSum(std::vector<int64_t> &value_modificator, std::vector<int64_t
   }
 }
 
-int64_t Sum(int left, int right, std::vector<int64_t> &prefix_sum) {
+unsigned int Sum(int left, int right, std::vector<unsigned int> &prefix_sum) {
   return prefix_sum[right] - prefix_sum[left - 1];
 }
 
@@ -36,7 +34,7 @@ int main() {
   unsigned int a = 0;
   unsigned int b = 0;
   std::cin >> m >> q >> a >> b;
-  std::vector<int64_t> prefix_sum(n + 2, 0);
+  std::vector<unsigned int> prefix_sum(n + 2, 0);
   for (int i = 0; i < m; ++i) {
     int add = static_cast<int>(NextRand(a, b));
     int left = static_cast<int>(NextRand(a, b));
@@ -50,7 +48,7 @@ int main() {
   }
   BuildPrefixSum(prefix_sum, prefix_sum);
 
-  int64_t sum = 0;
+  unsigned int sum = 0;
   for (int i = 0; i < q; ++i) {
     int left = static_cast<int>(NextRand(a, b));
     int right = static_cast<int>(NextRand(a, b));
@@ -59,8 +57,7 @@ int main() {
     }
     ++left;
     ++right;
-    sum += Sum(left, right, prefix_sum) % kMod;
+    sum += Sum(left, right, prefix_sum);  // По модулю 2^32
   }
-  sum %= kMod;
   std::cout << sum << '\n';
 }
